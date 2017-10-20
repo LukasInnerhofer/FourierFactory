@@ -35,14 +35,24 @@ void Button::setText(const std::string &text)
 	this->text.setString(text);
 }
 
+void Button::setTextPadding(const sf::Vector2i &padding)
+{
+	this->textPadding = padding;
+}
+
+bool Button::getMouseOver()
+{
+	return mouseOver;
+}
+
 Button::Button()
 {
-	fillColor = sf::Color(255, 255, 255, 255);
+	fillColor = sf::Color::White;
 	fillColorMouseOver = sf::Color(200, 200, 200, 255);
-	borderColor = sf::Color(0, 0, 0, 255);
+	borderColor = sf::Color::White;
 	font.loadFromFile("D:/C++/fonts/arial.ttf");
 	text = sf::Text("", font);
-	text.setFillColor(sf::Color(0, 0, 0, 255));
+	text.setFillColor(sf::Color::Black);
 	textPadding = sf::Vector2i(0, 0);
 }
 
@@ -50,8 +60,14 @@ Button::Button(const sf::Vector2i &position, const sf::Vector2i &size, const std
 {
 	this->position = position;
 	this->size = size;
-	this->text = sf::Text(text, font);
-	this->text.setPosition(vectorMath::toVector2f(this->position + textPadding));
+	this->text.setString(text);
+}
+
+Button::Button(const sf::Vector2i &position, const sf::Vector2i &size, const std::string &text, const unsigned int &textSize, const sf::Vector2i &textPadding) :
+	Button(position, size, text)
+{
+	this->text.setCharacterSize(textSize);
+	this->textPadding = textPadding;
 }
 
 void Button::update(const sf::RenderWindow &window)
@@ -76,5 +92,7 @@ void Button::draw(sf::RenderWindow &window)
 	rectangle.setOutlineColor(borderColor);
 
 	window.draw(rectangle);
+
+	text.setPosition(vectorMath::toVector2f(this->position + textPadding));
 	window.draw(text);
 }
