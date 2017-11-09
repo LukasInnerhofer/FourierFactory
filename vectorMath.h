@@ -3,7 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 
-sf::Vector2i operator+(const sf::Vector2i &v1, const sf::Vector2i &v2);
+sf::Vector2f operator+(const sf::Vector2f &v1, const sf::Vector2f &v2);
 
 namespace vectorMath
 {

@@ -1,8 +1,8 @@
 #include "vectorMath.h"
 
-sf::Vector2i operator+(const sf::Vector2i &v1, const sf::Vector2i &v2)
+sf::Vector2f operator+(const sf::Vector2f &v1, const sf::Vector2f &v2)
 {
-	return sf::Vector2i(v1.x + v2.x, v1.y + v2.y);
+	return sf::Vector2f(v1.x + v2.x, v1.y + v2.y);
 }
 
 namespace vectorMath

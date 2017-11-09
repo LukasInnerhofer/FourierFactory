@@ -7,36 +7,40 @@
 
 #include "vectorMath.h"
 
-class Button
+namespace sf
 {
-private:
-	sf::Vector2i position, size;
-	sf::Color fillColor, borderColor;
-	sf::Color fillColorMouseOver;
-	sf::Font font;
-	sf::Text text;
-	sf::Vector2i textPadding;
-	bool mouseOver;
+	class Button : public sf::Drawable
+	{
+	private:
+		sf::RectangleShape shape;
+		sf::Color fillColor, borderColor;
+		sf::Color fillColorMouseOver;
+		sf::Font font;
+		sf::Text text;
+		bool mouseOver;
 
-public:
-	sf::Vector2i getPosition();
+		virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const;
 
-	void setBackgroundColor(const sf::Color &fillColor);
-	void setBackgroundColorMouseOver(const sf::Color &fillColorMouseOver);
-	void setBorderColor(const sf::Color &borderColor);
-	void setTextColor(const sf::Color &textColor);
-	void setTextSize(const unsigned int &textSize);
-	void setText(const std::string &text);
-	void setTextPadding(const sf::Vector2i &padding);
+	public:
+		sf::Vector2f getPosition();
 
-	bool getMouseOver();
+		void setBackgroundColor(const sf::Color &fillColor);
+		void setBackgroundColorMouseOver(const sf::Color &fillColorMouseOver);
+		void setBorderColor(const sf::Color &borderColor);
+		void setTextColor(const sf::Color &textColor);
+		void setTextSize(const unsigned int &textSize);
+		void setText(const std::string &text);
+		void setTextPadding(const sf::Vector2f &padding);
 
-	Button();
-	Button(const sf::Vector2i &position, const sf::Vector2i &size, const std::string &text);
-	Button(const sf::Vector2i &position, const sf::Vector2i &size, const std::string &text, const unsigned int &textSize, const sf::Vector2i &textPadding);
+		bool getMouseOver();
 
-	void update(const sf::RenderWindow &window);
-	void draw(sf::RenderWindow &window);
-};
+		Button();
+		Button(const sf::Vector2f &position, const sf::Vector2f &size, const std::string &text);
+		Button(const sf::Vector2f &position, const sf::Vector2f &size, const std::string &text, const unsigned int &textSize, const sf::Vector2f &textPadding);
+
+		void update(const sf::RenderWindow &window);
+		void draw(sf::RenderWindow &window);
+	};
+}
 
 #endif // BUTTON_H

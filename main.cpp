@@ -5,7 +5,7 @@ int main()
 	sf::RenderWindow window;
 	window.create(sf::VideoMode(1600, 900), "Fourier Factory [BETA]");
 
-	const std::map<std::string, Button *> buttons = initButtons();
+	const std::map<std::string, sf::Button *> buttons = initButtons();
 	bool running = false;
 	std::vector<sf::Vector2i> vectors;
 
@@ -20,32 +20,37 @@ int main()
 				window.close();
 				break;
 
-			case sf::Event::MouseLeft:
+			case sf::Event::MouseButtonPressed:
 				if (sf::Mouse::getPosition(window).x < window.getSize().x / 2 && sf::Mouse::getPosition(window).y > 40)
 				{
 					sf::Vector2i vectorOrigin = { static_cast<int>(window.getSize().x / 4), static_cast<int>((window.getSize().y - 60) / 2) };
 					for (sf::Vector2i vector : vectors)
 					{
-						vectorOrigin += vector;
+						vectorOrigin.x += vector.x;
+						vectorOrigin.y -= vector.y;
 					}
 					vectors.push_back({sf::Mouse::getPosition(window).x - vectorOrigin.x, vectorOrigin.y - sf::Mouse::getPosition(window).y});
+					std::cout << vectors[vectors.size() - 1].x << " | " << vectors[vectors.size() - 1].y << std::endl;
 				}
 				else
 				{
-					for (std::pair<std::string, Button *> button : buttons)
+					for (std::pair<std::string, sf::Button *> button : buttons)
 					{
 						if (button.second->getMouseOver())
 						{
 							if (button.first == "start")
 							{
+								std::cout << "START\n";
 								running = true;
 							}
 							else if(button.first == "stop")
 							{
+								std::cout << "STOP\n";
 								running = false;
 							}
 							else if (button.first == "openFile")
 							{
+								std::cout << "OPEN FILE\n";
 								running = false;
 							}
 						}
@@ -63,10 +68,11 @@ int main()
 
 		drawBackground(window);
 
-		for (std::pair<std::string, Button *> button : buttons)
+		for (std::pair<std::string, sf::Button *> button : buttons)
 		{
 			button.second->update(window);
-			button.second->draw(window);
+			//button.second->draw(window);
+			window.draw(*button.second);
 		}
 
 		window.display();
@@ -77,18 +83,18 @@ int main()
 	return 0;
 }
 
-std::map<std::string, Button *> initButtons()
+std::map<std::string, sf::Button *> initButtons()
 {
 	return 
 	{
 		{
-			"start", new Button({ 10, 10 }, { 50, 20 }, "Start", 15, { 8, 0 })
+			"start", new sf::Button({ 10, 10 }, { 50, 20 }, "Start", 15, { 8, 0 })
 		},
 		{
-			"stop", new Button({ 70, 10 }, { 50, 20 }, "Stop", 15, { 8, 0 })
+			"stop", new sf::Button({ 70, 10 }, { 50, 20 }, "Stop", 15, { 8, 0 })
 		},
 		{
-			"openFile", new Button({ 130, 10 }, { 84, 20 }, "Open File", 15, { 8, 0 })
+			"openFile", new sf::Button({ 130, 10 }, { 84, 20 }, "Open File", 15, { 8, 0 })
 		}
 	};
 }
