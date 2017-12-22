@@ -2,15 +2,27 @@
 
 int main()
 {
+	float fps = 1;
+
 	sf::RenderWindow window;
 	window.create(sf::VideoMode(1600, 900), "Fourier Factory [BETA]");
 
 	const std::map<std::string, sf::Button *> buttons = initButtons();
 	bool running = false;
-	std::vector<sf::Vector2i> vectors;
+	List<sf::Vector2f> vectors;
+	List<sf::Vector2f> lineDiagramPoints;
+	float lineDiagramScale = 1;
 
+	sf::RectangleShape pixel = sf::RectangleShape({ 1, 1 });
+	pixel.setFillColor(sf::Color::White);
+
+	std::cout << lineDiagramOrigin(window.getSize()).x + (window.getSize().x / 2.0f) - 20;
+
+	auto startTime = std::chrono::system_clock::now();
 	while (window.isOpen())
 	{
+		auto loopStartTime = std::chrono::system_clock::now();
+
 		sf::Event e;
 		if (window.pollEvent(e))
 		{
@@ -23,14 +35,13 @@ int main()
 			case sf::Event::MouseButtonPressed:
 				if (sf::Mouse::getPosition(window).x < window.getSize().x / 2 && sf::Mouse::getPosition(window).y > 40)
 				{
-					sf::Vector2i vectorOrigin = { static_cast<int>(window.getSize().x / 4), static_cast<int>((window.getSize().y - 60) / 2) };
-					for (sf::Vector2i vector : vectors)
+					sf::Vector2f vectorOrigin = vectorDiagramOrigin(window.getSize());
+					for (sf::Vector2f vector : vectors)
 					{
 						vectorOrigin.x += vector.x;
 						vectorOrigin.y -= vector.y;
 					}
 					vectors.push_back({sf::Mouse::getPosition(window).x - vectorOrigin.x, vectorOrigin.y - sf::Mouse::getPosition(window).y});
-					std::cout << vectors[vectors.size() - 1].x << " | " << vectors[vectors.size() - 1].y << std::endl;
 				}
 				else
 				{
@@ -40,7 +51,6 @@ int main()
 						{
 							if (button.first == "start")
 							{
-								std::cout << "START\n";
 								running = true;
 							}
 							else if(button.first == "stop")
@@ -71,13 +81,51 @@ int main()
 		for (std::pair<std::string, sf::Button *> button : buttons)
 		{
 			button.second->update(window);
-			//button.second->draw(window);
 			window.draw(*button.second);
 		}
 
-		window.display();
+		{
+			sf::Vector2f vectorOrigin = vectorDiagramOrigin(window.getSize());
+			for (unsigned int itVectors = 0; itVectors < vectors.size(); ++itVectors)
+			{
+				window.draw(sf::LineShape(vectorOrigin, vectorOrigin + sf::Vector2f(vectors[itVectors].x, vectors[itVectors].y)));
+				vectorOrigin.x += vectors[itVectors].x;
+				vectorOrigin.y -= vectors[itVectors].y;
+			}
+		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(16));
+		if (running)
+		{
+			for (decltype(vectors.size()) itVectors = 0; itVectors < vectors.size(); ++itVectors)
+			{
+				vectors[itVectors] = vectorMath::rotate(vectors[itVectors], (itVectors + 1) * ANGULAR_FREQUENCY / fps);
+			}
+
+			float ySum = 0;
+			for (sf::Vector2f vector : vectors)
+			{
+				ySum += vector.y;
+			}
+			lineDiagramPoints.push_back(lineDiagramOrigin(window.getSize()) + sf::Vector2f(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - startTime).count() * window.getSize().x * ANGULAR_FREQUENCY / (8000000 * PI), ySum * lineDiagramScale));
+			if (lineDiagramPoints[lineDiagramPoints.size() - 1].x > lineDiagramOrigin(window.getSize()).x + (window.getSize().x / 2.0f) - 20)
+			{
+				auto oldPoints = lineDiagramPoints;
+				for (decltype(lineDiagramPoints.size()) itPoints = 1; itPoints < lineDiagramPoints.size(); ++itPoints)
+				{
+					lineDiagramPoints[itPoints].x = oldPoints[itPoints - 1].x;
+				}
+				lineDiagramPoints.erase(lineDiagramPoints.begin());
+			}
+
+			for (decltype(lineDiagramPoints.size()) itValues = 0; itValues < lineDiagramPoints.size(); ++itValues)
+			{
+				pixel.setPosition(lineDiagramPoints[itValues].x, lineDiagramPoints[itValues].y);
+				window.draw(pixel);
+			}
+		}
+		//std::cout << fps << std::endl;
+		window.display();
+		fps = 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - loopStartTime).count();
 	}
 
 	return 0;
@@ -117,11 +165,11 @@ void drawBackground(sf::RenderWindow &window)
 
 	// Vector diagram
 	line.setSize({ (window.getSize().x / 2.0f) - 20, 1.0f });
-	line.setPosition({ 10.0f, (window.getSize().y - 50) / 2.0f});
+	line.setPosition({ 10.0f, vectorDiagramOrigin(window.getSize()).y});
 	window.draw(line);
 
 	line.setSize({ 1.0f, window.getSize().y - 60.0f });
-	line.setPosition({ window.getSize().x / 4.0f, 50.0f });
+	line.setPosition({ vectorDiagramOrigin(window.getSize()).x, 50.0f });
 	window.draw(line);
 
 	//Line diagram
