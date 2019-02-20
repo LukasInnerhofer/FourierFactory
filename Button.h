@@ -22,24 +22,21 @@ namespace sf
 		virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const;
 
 	public:
-		sf::Vector2f getPosition();
+		inline void setBackgroundColor(const sf::Color &fillColor) { this->fillColor = fillColor; }
+		inline void setBackgroundColorMouseOver(const sf::Color &fillColorMouseOver) { this->fillColorMouseOver = fillColorMouseOver; }
+		inline void setBorderColor(const sf::Color &borderColor) { this->borderColor = borderColor; }
+		inline void setTextColor(const sf::Color &textColor) { text.setFillColor(textColor); }
+		inline void setTextSize(const unsigned int &textSize) { text.setCharacterSize(textSize); }
+		inline void setText(const std::string &text) { this->text.setString(text); }
+		inline void setTextPadding(const sf::Vector2f &padding) { text.setPosition(shape.getPosition() + padding); }
 
-		void setBackgroundColor(const sf::Color &fillColor);
-		void setBackgroundColorMouseOver(const sf::Color &fillColorMouseOver);
-		void setBorderColor(const sf::Color &borderColor);
-		void setTextColor(const sf::Color &textColor);
-		void setTextSize(const unsigned int &textSize);
-		void setText(const std::string &text);
-		void setTextPadding(const sf::Vector2f &padding);
-
-		bool getMouseOver();
+		inline bool getMouseOver() const { return mouseOver; }
 
 		Button();
 		Button(const sf::Vector2f &position, const sf::Vector2f &size, const std::string &text);
 		Button(const sf::Vector2f &position, const sf::Vector2f &size, const std::string &text, const unsigned int &textSize, const sf::Vector2f &textPadding);
 
 		void update(const sf::RenderWindow &window);
-		void draw(sf::RenderWindow &window);
 	};
 }
 

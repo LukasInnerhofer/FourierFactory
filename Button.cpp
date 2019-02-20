@@ -2,51 +2,6 @@
 
 namespace sf
 {
-	sf::Vector2f Button::getPosition()
-	{
-		return shape.getPosition();
-	}
-
-	void Button::setBackgroundColor(const sf::Color &fillColor)
-	{
-		this->fillColor = fillColor;
-	}
-
-	void Button::setBackgroundColorMouseOver(const sf::Color &fillColorMouseOver)
-	{
-		this->fillColorMouseOver = fillColorMouseOver;
-	}
-
-	void Button::setBorderColor(const sf::Color &borderColor)
-	{
-		this->borderColor = borderColor;
-	}
-
-	void Button::setTextColor(const sf::Color &textColor)
-	{
-		text.setFillColor(textColor);
-	}
-
-	void Button::setTextSize(const unsigned int &textSize)
-	{
-		text.setCharacterSize(textSize);
-	}
-
-	void Button::setText(const std::string &text)
-	{
-		this->text.setString(text);
-	}
-
-	void Button::setTextPadding(const sf::Vector2f &padding)
-	{
-		text.setPosition(shape.getPosition() + padding);
-	}
-
-	bool Button::getMouseOver()
-	{
-		return mouseOver;
-	}
-
 	Button::Button()
 	{
 		fillColor = sf::Color::White;
