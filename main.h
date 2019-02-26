@@ -11,7 +11,8 @@
 #include "LineShape.h"
 #include "List.h"
 
-#define ANGULAR_FREQUENCY 1
+#define ANGULAR_FREQUENCY	1
+#define FPS_GOAL			60
 
 std::map<std::string, sf::Button *> initButtons();
 void drawBackground(sf::RenderWindow &window);

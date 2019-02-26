@@ -1,6 +1,6 @@
 #include "main.h"
 
-void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::map<std::string, sf::Button *> &buttons, bool &running);
+void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime);
 
 int main()
 {
@@ -15,7 +15,7 @@ int main()
 	List<sf::Vector2f> lineDiagramPoints;
 	float lineDiagramScale = 1;
 
-	const std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
 	std::thread timerThread;
 
 	sf::RectangleShape pixel = sf::RectangleShape({ 1, 1 });
@@ -23,10 +23,10 @@ int main()
 
 	while (window.isOpen())
 	{
-		timerThread = std::thread([] { std::this_thread::sleep_for(std::chrono::milliseconds(16)); });
+		timerThread = std::thread([] { std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FPS_GOAL)); });
 		const std::chrono::time_point<std::chrono::steady_clock> loopStartTime = std::chrono::steady_clock::now();
 
-		handleEvents(window, vectors, buttons, running);
+		handleEvents(window, vectors, buttons, running, startTime);
 
 		window.clear();
 		drawBackground(window);
@@ -39,11 +39,11 @@ int main()
 
 		{
 			sf::Vector2f vectorOrigin = vectorDiagramOrigin(window.getSize());
-			for (unsigned int itVectors = 0; itVectors < vectors.size(); ++itVectors)
+			for (const sf::Vector2f &vector : vectors)
 			{
-				window.draw(sf::LineShape(vectorOrigin, vectorOrigin + sf::Vector2f(vectors[itVectors].x, vectors[itVectors].y)));
-				vectorOrigin.x += vectors[itVectors].x;
-				vectorOrigin.y -= vectors[itVectors].y;
+				window.draw(sf::LineShape(vectorOrigin, vectorOrigin + vector));
+				vectorOrigin.x += vector.x;
+				vectorOrigin.y -= vector.y;
 			}
 		}
 
@@ -59,8 +59,9 @@ int main()
 
 			lineDiagramPoints.push_back(
 				lineDiagramOrigin(window.getSize()) + 
-				sf::Vector2f(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count() * window.getSize().x * ANGULAR_FREQUENCY / (8000000 * PI), 
-					ySum * lineDiagramScale));
+				sf::Vector2f(
+					std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count() * window.getSize().x * ANGULAR_FREQUENCY / (8000000 * PI) + 10, 
+					-ySum * lineDiagramScale));
 			
 			if (lineDiagramPoints[lineDiagramPoints.size() - 1].x > lineDiagramOrigin(window.getSize()).x + (window.getSize().x / 2.0f) - 20)
 			{
@@ -87,7 +88,7 @@ int main()
 	return 0;
 }
 
-void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::map<std::string, sf::Button *> &buttons, bool &running)
+void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime)
 {
 	sf::Event e;
 	if (window.pollEvent(e))
@@ -117,6 +118,7 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::ma
 					{
 						if (button.first == "start")
 						{
+							startTime = std::chrono::steady_clock::now();
 							running = true;
 						}
 						else if (button.first == "stop")
