@@ -1,6 +1,6 @@
 #include "main.h"
 
-void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime);
+void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vector2f> &lineDiagramPoints, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime);
 
 int main()
 {
@@ -26,7 +26,7 @@ int main()
 		timerThread = std::thread([] { std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FPS_GOAL)); });
 		const std::chrono::time_point<std::chrono::steady_clock> loopStartTime = std::chrono::steady_clock::now();
 
-		handleEvents(window, vectors, buttons, running, startTime);
+		handleEvents(window, vectors, lineDiagramPoints, buttons, running, startTime);
 
 		window.clear();
 		drawBackground(window);
@@ -88,7 +88,7 @@ int main()
 	return 0;
 }
 
-void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime)
+void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vector2f> &lineDiagramPoints, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime)
 {
 	sf::Event e;
 	if (window.pollEvent(e))
@@ -129,6 +129,12 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, const std::ma
 						{
 							running = false;
 						}
+						else if (button.first == "clear")
+						{
+							running = false;
+							vectors.clear();
+							lineDiagramPoints.clear();
+						}
 					}
 				}
 			}
@@ -153,6 +159,9 @@ std::map<std::string, sf::Button *> initButtons()
 		},
 		{
 			"openFile", new sf::Button({ 130, 10 }, { 84, 20 }, "Open File", 15, { 8, 0 })
+		},
+		{
+			"clear", new sf::Button({ 224, 10 }, { 50, 20 }, "Clear", 15, { 8, 0 })
 		}
 	};
 }
