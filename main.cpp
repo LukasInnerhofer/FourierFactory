@@ -60,7 +60,7 @@ int main()
 			lineDiagramPoints.push_back(
 				lineDiagramOrigin(window.getSize()) + 
 				sf::Vector2f(
-					std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count() * window.getSize().x * ANGULAR_FREQUENCY / (8000000 * PI) + 10, 
+					std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count() * window.getSize().x * ANGULAR_FREQUENCY / (8000000 * PI), 
 					-ySum * lineDiagramScale));
 			
 			if (lineDiagramPoints[lineDiagramPoints.size() - 1].x > lineDiagramOrigin(window.getSize()).x + (window.getSize().x / 2.0f) - 20)
@@ -108,7 +108,9 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vect
 					vectorOrigin.x += vector.x;
 					vectorOrigin.y -= vector.y;
 				}
-				vectors.push_back({ sf::Mouse::getPosition(window).x - vectorOrigin.x, vectorOrigin.y - sf::Mouse::getPosition(window).y });
+				const int diffX = sf::Mouse::getPosition(window).x - vectorOrigin.x;
+				const int diffY = vectorOrigin.y - sf::Mouse::getPosition(window).y;
+				vectors.push_back({ static_cast<float>(diffX == 0 ? 1 : diffX), static_cast<float>(diffY == 0 ? 1 : diffY) });
 			}
 			else
 			{
@@ -193,7 +195,7 @@ void drawBackground(sf::RenderWindow &window)
 
 	//Line diagram
 	line.setSize({ (window.getSize().x / 2.0f) - 20, 1 });
-	line.setPosition({ (window.getSize().x / 2.0f) + 10, (window.getSize().y - 50) / 2.0f });
+	line.setPosition({ lineDiagramOrigin(window.getSize()).x - 10, lineDiagramOrigin(window.getSize()).y });
 	window.draw(line);
 
 	line.setSize({ 1, window.getSize().y - 60.0f });
