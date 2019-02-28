@@ -1,13 +1,10 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif // _WIN32
-
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Transform.hpp>
 
+#include <array>
 #include <chrono>
 #include <fstream>
 #include <map>
@@ -17,6 +14,10 @@
 #include "Button.h"
 #include "LineShape.h"
 #include "List.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif // _WIN32
 
 #define ANGULAR_FREQUENCY	1
 #define FPS_GOAL			60

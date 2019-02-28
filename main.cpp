@@ -131,14 +131,23 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vect
 						else if (button.first == "openFile")
 						{
 							running = false;
-
+							std::string path = "";
 #ifdef _WIN32
-							LPOPENFILENAMEA openFileNameA;
-							if (GetOpenFileName(openFileNameA))
+							std::array<char, 1024> fileName;
+							OPENFILENAME ofn = {};
+							ofn.lStructSize = sizeof(ofn);
+							ofn.hwndOwner = NULL;
+							ofn.lpstrFile = fileName.data();
+							ofn.lpstrFile[0] = '\0';
+							ofn.nMaxFile = fileName.size();
+							ofn.lpstrFilter = NULL;
+							if (!GetOpenFileName(&ofn))
 							{
-								std::cout << openFileNameA->lpstrFile << std::endl;
+								std::cout << "error opening file dialog: " << CommDlgExtendedError() << std::endl;
 							}
+							path = std::string(fileName.data());
 #endif // _WIN32
+							std::cout << path << std::endl;
 						}
 						else if (button.first == "clear")
 						{
