@@ -60,10 +60,11 @@ int main()
 			lineDiagramPoints.push_back(
 				lineDiagramOrigin(window.getSize()) + 
 				sf::Vector2f(
-					std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count() * window.getSize().x * ANGULAR_FREQUENCY / (8000000 * PI), 
+					(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count() / 1000000.0) * 
+					window.getSize().x * ANGULAR_FREQUENCY / (8 * PI), 
 					-ySum * lineDiagramScale));
 			
-			if (lineDiagramPoints[lineDiagramPoints.size() - 1].x > lineDiagramOrigin(window.getSize()).x + (window.getSize().x / 2.0f) - 20)
+			if (lineDiagramPoints[lineDiagramPoints.size() - 1].x > lineDiagramOrigin(window.getSize()).x + lineDiagramSize(window.getSize()).x - 10)
 			{
 				auto oldPoints = lineDiagramPoints;
 				for (unsigned int itPoints = 1; itPoints < lineDiagramPoints.size(); ++itPoints)
@@ -100,7 +101,7 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vect
 			break;
 
 		case sf::Event::MouseButtonPressed:
-			if (sf::Mouse::getPosition(window).x < window.getSize().x / 2 && sf::Mouse::getPosition(window).y > 40)
+			if (sf::Mouse::getPosition(window).x < window.getSize().x / 2 && sf::Mouse::getPosition(window).y > TOOLBAR_HEIGHT)
 			{
 				sf::Vector2f vectorOrigin = vectorDiagramOrigin(window.getSize());
 				for (const sf::Vector2f vector : vectors)
@@ -181,32 +182,38 @@ void drawBackground(sf::RenderWindow &window)
 	sf::RectangleShape line;
 	line.setFillColor(sf::Color(200, 200, 200, 255));
 
+	// Toolbar
 	line.setSize({ static_cast<float>(window.getSize().x), 1.0f });
-	line.setPosition({ 0, 40 });
+	line.setPosition({ 0, TOOLBAR_HEIGHT });
 	window.draw(line);
 
-	line.setSize({ 1.0f, window.getSize().y - 40.0f });
-	line.setPosition({ window.getSize().x / 2.0f, 40.0f });
+	// Seperator
+	line.setSize({ 1.0f, static_cast<float>(window.getSize().y - TOOLBAR_HEIGHT) });
+	line.setPosition({ window.getSize().x / 2.0f, static_cast<float>(TOOLBAR_HEIGHT) });
 	window.draw(line);
 
 	// Coordinate Systems
 	line.setFillColor(sf::Color::White);
 
 	// Vector diagram
-	line.setSize({ (window.getSize().x / 2.0f) - 20, 1.0f });
+	// x
+	line.setSize({ vectorDiagramSize(window.getSize()).x, 1.0f });
 	line.setPosition({ 10.0f, vectorDiagramOrigin(window.getSize()).y});
 	window.draw(line);
 
-	line.setSize({ 1.0f, window.getSize().y - 60.0f });
-	line.setPosition({ vectorDiagramOrigin(window.getSize()).x, 50.0f });
+	// y
+	line.setSize({ 1.0f, vectorDiagramSize(window.getSize()).y });
+	line.setPosition({ vectorDiagramOrigin(window.getSize()).x, TOOLBAR_HEIGHT + 10.0f });
 	window.draw(line);
 
-	//Line diagram
-	line.setSize({ (window.getSize().x / 2.0f) - 20, 1 });
+	// Line diagram
+	// x
+	line.setSize({ lineDiagramSize(window.getSize()).x, 1.0f });
 	line.setPosition({ lineDiagramOrigin(window.getSize()).x - 10, lineDiagramOrigin(window.getSize()).y });
 	window.draw(line);
 
-	line.setSize({ 1, window.getSize().y - 60.0f });
-	line.setPosition({ (window.getSize().x / 2.0f) + 20, 50.0f });
+	// y
+	line.setSize({ 1, lineDiagramSize(window.getSize()).y });
+	line.setPosition({ (window.getSize().x / 2.0f) + 20, TOOLBAR_HEIGHT + 10.0f });
 	window.draw(line);
 }
