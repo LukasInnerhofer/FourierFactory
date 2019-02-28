@@ -130,6 +130,14 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vect
 						else if (button.first == "openFile")
 						{
 							running = false;
+
+#ifdef _WIN32
+							LPOPENFILENAMEA openFileNameA;
+							if (GetOpenFileName(openFileNameA))
+							{
+								std::cout << openFileNameA->lpstrFile << std::endl;
+							}
+#endif // _WIN32
 						}
 						else if (button.first == "clear")
 						{

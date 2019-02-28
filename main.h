@@ -1,13 +1,18 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif // _WIN32
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Transform.hpp>
 
-#include <thread>
 #include <chrono>
+#include <fstream>
 #include <map>
 #include <string>
+#include <thread>
 
 #include "Button.h"
 #include "LineShape.h"
