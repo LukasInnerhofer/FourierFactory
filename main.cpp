@@ -1,18 +1,33 @@
 #include "main.h"
 
-void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vector2f> &lineDiagramPoints, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime);
+#define ANGULAR_FREQUENCY	1
+#define FPS_GOAL			60
+
+/// <ui>
+#define TOOLBAR_HEIGHT		40
+
+inline sf::Vector2f vectorDiagramOrigin(const sf::Vector2u &windowSize) { return { windowSize.x / 4.0f, (windowSize.y - 40) / 2.0f + 40 }; }
+inline sf::Vector2f vectorDiagramSize(const sf::Vector2u &windowSize) { return { windowSize.x / 2.0f - 20, windowSize.y - 60.0f }; }
+inline sf::Vector2f lineDiagramOrigin(const sf::Vector2u &windowSize) { return { windowSize.x / 2.0f + 20, (windowSize.y - 40) / 2.0f + 40 }; }
+inline sf::Vector2f lineDiagramSize(const sf::Vector2u &windowSize) { return { windowSize.x / 2.0f - 20, windowSize.y - 60.0f }; }
+/// </ui>
+
+void handleEvents(sf::Window &window, std::vector<sf::Vector2f> &vectors, std::vector<sf::Vector2f> &lineDiagramPoints, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime);
+std::map<std::string, sf::Button *> initButtons();
+void drawBackground(sf::RenderWindow &window);
+float stof_ext(const std::string &str);
 
 int main()
 {
 	float fps = 1;
 
 	sf::RenderWindow window;
-	window.create(sf::VideoMode(1600, 900), "Fourier Factory [BETA]");
+	window.create(sf::VideoMode(1600, 900), "Fourier Factory");
 
 	const std::map<std::string, sf::Button *> buttons = initButtons();
 	bool running = false;
-	List<sf::Vector2f> vectors;
-	List<sf::Vector2f> lineDiagramPoints;
+	std::vector<sf::Vector2f> vectors;
+	std::vector<sf::Vector2f> lineDiagramPoints;
 	float lineDiagramScale = 1;
 
 	std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
@@ -51,7 +66,8 @@ int main()
 		{
 			for (unsigned int itVectors = 0; itVectors < vectors.size(); ++itVectors)
 			{
-				vectors[itVectors] = vectorMath::rotate(vectors[itVectors], (itVectors + 1) * ANGULAR_FREQUENCY / fps);
+				sf::Transform transform;
+				vectors[itVectors] = transform.rotate(180 * (itVectors + 1) * ANGULAR_FREQUENCY / (PI * fps)).transformPoint(vectors[itVectors]);
 			}
 
 			float ySum = 0;
@@ -89,7 +105,7 @@ int main()
 	return 0;
 }
 
-void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vector2f> &lineDiagramPoints, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime)
+void handleEvents(sf::Window &window, std::vector<sf::Vector2f> &vectors, std::vector<sf::Vector2f> &lineDiagramPoints, const std::map<std::string, sf::Button *> &buttons, bool &running, std::chrono::steady_clock::time_point &startTime)
 {
 	sf::Event e;
 	if (window.pollEvent(e))
@@ -127,6 +143,7 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vect
 						else if (button.first == "stop")
 						{
 							running = false;
+							lineDiagramPoints.clear();
 						}
 						else if (button.first == "openFile")
 						{
@@ -141,24 +158,85 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vect
 							ofn.lpstrFile[0] = '\0';
 							ofn.nMaxFile = fileName.size();
 							ofn.lpstrFilter = NULL;
-							if (!GetOpenFileName(&ofn))
+
+							try
 							{
-								std::cout << "error opening file dialog: " << CommDlgExtendedError() << std::endl;
+								if (!GetOpenFileName(&ofn))
+								{
+									const DWORD errcode = CommDlgExtendedError();
+									if (errcode) throw std::system_error(std::error_code(errcode, std::system_category()), "GetOpenFileName resulted in an error.");
+									else return;
+								}
+								path = std::string(fileName.data());
 							}
-							path = std::string(fileName.data());
+							catch (const std::system_error &exception)
+							{
+								std::cout << "System error occured during file dialog. " << exception.what() << " Code: " << exception.code() << std::endl;
+								return;
+							}
+							catch (const std::length_error &exception)
+							{
+								std::cout << "The supplied pathname was too long. " << exception.what() << std::endl;
+								return;
+							}
+							catch (const std::bad_alloc &exception)
+							{
+								std::cout << "Failed to allocate memory during file dialog. " << exception.what() << std::endl;
+								return;
+							}
+							catch (const std::exception &exception)
+							{
+								std::cout << "Unknown exception occured during file handling. " << exception.what() << std::endl;
+								return;
+							}
 #endif // _WIN32
 							lineDiagramPoints.clear();
 							vectors.clear();
 							
 							auto fstream = std::ifstream(path);
-							std::array<char, 128> line;
-							while (!fstream.bad() && !fstream.eof())
+							std::string line;
+							try
 							{
-								fstream.getline(line.data(), line.size());
-								auto lineString = std::string(line.data());
-								vectors.push_back({ std::stof(lineString.erase(lineString.find(','))), std::stof(lineString.substr(lineString.find(',') + 1)) });
+								while (std::getline(fstream, line))
+								{
+									const unsigned int index = line.find(',');
+									if (index != std::string::npos)
+									{
+										vectors.push_back({ stof_ext(line.substr(index + 1)), stof_ext(line.substr(0, index)) });
+									}
+									else
+									{
+										throw InvalidFormat("Fourier files must follow this format: \ncoeffA1,coeffB1\ncoeffA2,coeffB2\n...");
+									}
+								}
 							}
-
+							catch (const std::invalid_argument &exception)
+							{
+								std::cout << "Invalid argument exception occured during file read. " << exception.what() << std::endl;
+								std::cout << "Hint: fourier files must follow this format: \ncoeffA1,coeffB1\ncoeffA2,coeffB2\n...\n";
+								return;
+							}
+							catch (const std::out_of_range &exception)
+							{
+								std::cout << "Out of range exception occured during file read. " << exception.what() << std::endl;
+								return;  
+							}
+							catch (const std::logic_error &exception)
+							{
+								std::cout << "Logic error occured during file read. " << exception.what() << std::endl;
+								return;
+							}
+							catch (const InvalidFormat &exception)
+							{
+								std::cout << "Invalid format exception occured during file read. " << exception.what() << std::endl;
+								return;
+							}
+							catch (const std::exception &exception)
+							{
+								std::cout << "Unknown exception occured during file read. " << exception.what() << std::endl;
+								return;
+							}
+							
 							float totalMag = 0;
 							for (const sf::Vector2f &vector : vectors) { totalMag += vectorMath::magnitude(vector); }
 							const sf::Vector2f diagramSize = vectorDiagramSize(window.getSize());
@@ -245,4 +323,25 @@ void drawBackground(sf::RenderWindow &window)
 	line.setSize({ 1, lineDiagramSize(window.getSize()).y });
 	line.setPosition({ (window.getSize().x / 2.0f) + 20, TOOLBAR_HEIGHT + 10.0f });
 	window.draw(line);
+}
+
+float stof_ext(const std::string &str)
+{
+	float ret = 0;
+
+	try
+	{
+		ret = std::stof(str); // throws invalid_argument and out_of_range
+	}
+	catch (const std::logic_error &exception)
+	{
+		const unsigned int index = str.find('e');
+		if (index != std::string::npos)
+		{
+			ret = std::stof(str.substr(0, index)) * std::pow(10, std::stof(str.substr(index + 1)));
+		}
+		else throw exception;
+	}
+
+	return ret;
 }

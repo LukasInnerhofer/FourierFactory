@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-#include "vectorMath.h"
+#include "vector_math.h"
 
 namespace sf
 {
