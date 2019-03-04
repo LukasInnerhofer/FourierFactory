@@ -147,7 +147,27 @@ void handleEvents(sf::Window &window, List<sf::Vector2f> &vectors, List<sf::Vect
 							}
 							path = std::string(fileName.data());
 #endif // _WIN32
-							std::cout << path << std::endl;
+							lineDiagramPoints.clear();
+							vectors.clear();
+							
+							auto fstream = std::ifstream(path);
+							std::array<char, 128> line;
+							while (!fstream.bad() && !fstream.eof())
+							{
+								fstream.getline(line.data(), line.size());
+								auto lineString = std::string(line.data());
+								vectors.push_back({ std::stof(lineString.erase(lineString.find(','))), std::stof(lineString.substr(lineString.find(',') + 1)) });
+							}
+
+							float totalMag = 0;
+							for (const sf::Vector2f &vector : vectors) { totalMag += vectorMath::magnitude(vector); }
+							const sf::Vector2f diagramSize = vectorDiagramSize(window.getSize());
+							const float scale = (((diagramSize.x > diagramSize.y) ? diagramSize.y : diagramSize.x) / 2 - 10) / totalMag;
+							for (unsigned int itVectors = 0; itVectors < vectors.size(); ++itVectors)
+							{
+								vectors[itVectors].x *= scale;
+								vectors[itVectors].y *= scale;
+							}
 						}
 						else if (button.first == "clear")
 						{
